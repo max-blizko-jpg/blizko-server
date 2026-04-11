@@ -1,4 +1,14 @@
-const { PeerServer } = require('peer');
+const express = require('express');
+const { ExpressPeerServer } = require('peer');
+
+const app = express();
 const port = process.env.PORT || 9000;
-const server = PeerServer({ port, path: '/blizko' });
-console.log('Blizko signaling server running on port', port);
+
+app.get('/', (req, res) => res.json({ status: 'ok', app: 'blizko-server' }));
+
+const server = app.listen(port, () => {
+  console.log('Blizko signaling server running on port', port);
+});
+
+const peerServer = ExpressPeerServer(server, { path: '/blizko' });
+app.use('/blizko', peerServer);

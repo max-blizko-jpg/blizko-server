@@ -10,5 +10,9 @@ const server = app.listen(port, () => {
   console.log('Blizko signaling server running on port', port);
 });
 
-const peerServer = ExpressPeerServer(server, { path: '/blizko' });
+const peerServer = ExpressPeerServer(server, {
+  path: '/',
+  allow_discovery: true,
+});
+
 app.use('/blizko', peerServer);

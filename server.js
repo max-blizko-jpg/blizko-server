@@ -13,10 +13,35 @@ const server = app.listen(port, () => {
 const peerServer = ExpressPeerServer(server, {
   path: '/',
   allow_discovery: true,
-  expire_timeout: 5000,    // Old connection expires after 5 seconds
-  alive_timeout: 60000,    // Keep-alive timeout
+  expire_timeout: 5000,
+  alive_timeout: 60000,
   concurrent_limit: 5000,
   cleanup_out_msgs: 1000,
+});
+
+// Track connected peers so we can kick old connections
+const connectedPeers = new Map();
+
+peerServer.on('connection', (client) => {
+  const id = client.getId();
+  console.log('[Blizko] Peer connected:', id);
+
+  // If another peer with same ID exists, disconnect it
+  if (connectedPeers.has(id)) {
+    const oldClient = connectedPeers.get(id);
+    console.log('[Blizko] Kicking old connection for:', id);
+    try { oldClient.getSocket()?.close(); } catch(e) {}
+  }
+
+  connectedPeers.set(id, client);
+});
+
+peerServer.on('disconnect', (client) => {
+  const id = client.getId();
+  console.log('[Blizko] Peer disconnected:', id);
+  if (connectedPeers.get(id) === client) {
+    connectedPeers.delete(id);
+  }
 });
 
 app.use('/blizko', peerServer);

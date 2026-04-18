@@ -76,11 +76,13 @@ peerServer.on('connection', async (client) => {
     return;
   }
 
-  // If another peer with same ID exists, disconnect it (latest device wins)
+  // If another peer with same ID exists, kick it after a delay (latest device wins)
   if (connectedPeers.has(id)) {
     const oldClient = connectedPeers.get(id);
     console.log('[Blizko] Kicking old connection for:', id);
-    try { oldClient.getSocket()?.close(); } catch(e) {}
+    setTimeout(() => {
+      try { oldClient.getSocket()?.close(); } catch(e) {}
+    }, 500);
   }
 
   connectedPeers.set(id, client);
